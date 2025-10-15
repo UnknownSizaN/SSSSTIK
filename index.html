@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Downloader & Utility</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for Inter font and custom colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-light': '#FFFFFF',
+                        'primary-dark': '#1F2937',
+                        'accent-purple': '#8B5CF6',
+                        'accent-pink': '#EC4899',
+                        'accent-cyan': '#06B6D4'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        /* Custom glow/hover for AI buttons (adapted for light theme) */
+        .ai-glow-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .ai-glow-button:hover {
+            box-shadow: 0 0 10px 2px rgba(6, 182, 212, 0.5), 0 0 20px 5px rgba(6, 182, 212, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Custom scrollbar for output box */
+        #aiOutput {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        
+        /* The main hero section uses a clip-path to create the gradient bar effect */
+        .hero-clip {
+            min-height: 400px;
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #8B5CF6;
+            --tw-gradient-to: #EC4899;
+        }
+
+        /* Input container styling to sit over the gradient */
+        .input-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: white; /* Ensure input block stands out */
+        }
+    </style>
+</head>
+<body class="bg-red-800 text-white font-sans">
+
+    <!-- Header (Navigation Bar) -->
+    <header class="shadow-sm bg-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-gray-800 flex items-center">
+                <svg class="w-6 h-6 mr-1 text-accent-purple" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm-1 16.5A1.5 1.5 0 019.5 15h-2a1.5 1.5 0 01-1.5-1.5v-3A1.5 1.5 0 016 9h2A1.5 1.5 0 019.5 7.5v-2a1.5 1.5 0 011.5-1.5h1a1 1 0 011 1v12a1 1 0 01-1 1h-1zM17 17.5a1.5 1.5 0 01-1.5-1.5v-7A1.5 1.5 0 0117 7.5h1.5a1 1 0 011 1v7a1 1 0 01-1 1H17z" style="fill:#EC4899; transform: rotate(10deg);"/>
+                </svg>
+                SSSSTIK DOWNLOADER
+            </a>
+            <nav class="hidden md:flex space-x-6 text-sm">
+                <a href="#" class="text-gray-600 hover:text-accent-purple transition">Download Video</a>
+                <a href="#" class="text-gray-600 hover:text-accent-purple transition">Download Stories</a>
+                
+                <a href="#" class="text-gray-600 hover:text-accent-purple transition">Download MP3</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section (Gradient Bar and Input) -->
+    <section class="hero-clip pt-12 pb-24 flex flex-col items-center justify-start text-center">
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white mb-10 drop-shadow-lg">
+            TikTok Video Downloader
+        </h1>
+
+        <!-- Input Area Container -->
+        <div class="input-container bg-white p-3 sm:p-4 rounded-xl shadow-2xl">
+            <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-3 w-full">
+                <!-- Link Input -->
+                <div class="flex-grow flex items-center border border-gray-200 rounded-lg p-1.5 focus-within:border-accent-purple transition duration-200">
+                    <input 
+                        type="url" 
+                        id="videoLink" 
+                        placeholder="Just insert a link"
+                        class="w-full p-2 text-lg text-gray-700 focus:outline-none"
+                    >
+                    <!-- Added conditional visibility for Paste button for better mobile usability -->
+                    <button 
+                        id="pasteButton"
+                        class="text-sm font-semibold text-accent-purple hover:text-accent-pink px-3 py-1.5 rounded-md transition hidden sm:inline-block"
+                    >
+                        Paste
+                    </button>
+                </div>
+                
+                <!-- Download Button -->
+                <button 
+                    id="downloadButton" 
+                    class="flex-shrink-0 bg-accent-purple hover:bg-accent-pink text-white font-bold py-3 px-8 rounded-lg shadow-lg transition duration-200"
+                >
+                    Download
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 mb-20">
+        <!-- Optimized for responsiveness: 1 column on mobile, 3 columns on tablet/desktop -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            
+            <!-- Feature 1: Unlimited -->
+            <div class="p-6 bg-white rounded-xl shadow-xl border border-gray-100">
+                <h3 class="text-2xl font-extrabold text-gray-900 mb-3">Unlimited</h3>
+                <p class="text-gray-600">Save TikTok videos as much as you need - without any limits.</p>
+            </div>
+
+            <!-- Feature 2: No Watermark! -->
+            <div class="p-6 bg-white rounded-xl shadow-xl border border-gray-100">
+                <h3 class="text-2xl font-extrabold text-gray-900 mb-3">No Watermark!</h3>
+                <p class="text-gray-600">Download TikTok video in mp4 or remove a TT logo.</p>
+            </div>
+
+            <!-- Feature 3: MP4 and MP3 -->
+            <div class="p-6 bg-white rounded-xl shadow-xl border border-gray-100">
+                <h3 class="text-2xl font-extrabold text-gray-900 mb-3">MP4 and MP3</h3>
+                <p class="text-gray-600">Save files in HD quality, convert TikTok to mp4 or mp3.</p>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Descriptive Text Section -->
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 text-center">
+        <!-- Text color set for contrast against crimson background -->
+        <h2 class="text-3xl font-bold text-white mb-4">Download TikTok videos online</h2>
+        <p class="text-gray-200 leading-relaxed">
+            SSSSTIK is a free TikTok download tool that helps you download TikTok videos without watermark online. Save TT videos in the highest quality in an MP4 file format and HD resolution. To find out how to use the TikTok watermark remover, follow the instructions below.
+        </p>
+    </section>
+
+    <!-- Download Results and AI Tools (Hidden by default) -->
+    <div id="app" class="max-w-xl mx-auto p-4 sm:p-8 bg-white rounded-xl mb-16 shadow-lg border border-gray-200">
+        <div id="messageBox" class="hidden p-3 mb-4 text-sm text-red-800 bg-red-100 rounded-lg" role="alert"></div>
+
+        <!-- Download Results -->
+        <div id="downloadResults" class="mt-4 p-4 bg-gray-100 rounded-lg border border-gray-200 hidden">
+            <p class="text-lg font-semibold text-gray-800 mb-3">Download Ready</p>
+            <p id="videoTitleDisplay" class="text-sm text-gray-500 mb-4 truncate"></p>
+
+            <a id="downloadLinkOutput" 
+               href="#" 
+               download 
+               target="_blank"
+               class="block bg-accent-cyan text-white font-bold text-center py-3 px-4 rounded-lg shadow-md shadow-accent-cyan/30 hover:bg-accent-cyan/90 transition duration-150 transform hover:scale-[1.01]"
+            >
+                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Download Video (.mp4)
+            </a>
+        </div>
+
+        <!-- AI Tools Section (Powered by Sizan) -->
+        <div id="aiTools" class="mt-8 pt-4 border-t border-gray-200 hidden">
+            <h2 class="text-xl font-bold text-accent-purple mb-4">Ai Content Tools</h2>
+            
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button 
+                    id="captionButton" 
+                    class="ai-glow-button flex-grow min-w-[120px] bg-gray-100 text-gray-700 font-bold py-2 px-3 rounded-lg border border-accent-cyan/50 hover:bg-gray-200 text-xs sm:text-sm"
+                >
+                    ✨ Suggest Captions
+                </button>
+                <button 
+                    id="summaryButton" 
+                    class="ai-glow-button flex-grow min-w-[120px] bg-gray-100 text-gray-700 font-bold py-2 px-3 rounded-lg border border-accent-cyan/50 hover:bg-gray-200 text-xs sm:text-sm"
+                >
+                    ✨ Summarize Content
+                </button>
+                <button 
+                    id="ttsButton" 
+                    class="ai-glow-button flex-grow min-w-[120px] bg-gray-100 text-gray-700 font-bold py-2 px-3 rounded-lg border border-accent-cyan/50 hover:bg-gray-200 text-xs sm:text-sm"
+                >
+                    🗣️ Generate Voiceover
+                </button>
+                <button 
+                    id="imageButton" 
+                    class="ai-glow-button flex-grow min-w-[120px] bg-gray-100 text-gray-700 font-bold py-2 px-3 rounded-lg border border-accent-cyan/50 hover:bg-gray-200 text-xs sm:text-sm"
+                >
+                    🖼️ Generate AI Thumbnail
+                </button>
+            </div>
+
+            <!-- AI Output Area -->
+            <div id="aiOutputContainer" class="hidden mt-4">
+                <p id="aiOutputTitle" class="text-md font-semibold text-gray-800 mb-2"></p>
+                
+                <!-- Audio Player for TTS -->
+                <audio id="ttsAudioPlayer" controls class="w-full mb-3 hidden bg-gray-200 rounded-lg p-1"></audio>
+                
+                <!-- Image Output -->
+                <img id="aiImageOutput" class="w-full max-h-96 object-contain rounded-lg mb-3 hidden border border-gray-300" alt="AI Generated Thumbnail">
+
+                <div id="aiOutput" class="p-4 bg-gray-100 text-gray-700 rounded-lg whitespace-pre-wrap text-sm border border-gray-300">
+                    <!-- AI response will be inserted here -->
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loadingIndicator" class="hidden text-center text-accent-cyan py-4">
+                <div class="animate-spin inline-block w-6 h-6 border-[3px] border-current border-t-transparent text-accent-cyan rounded-full" role="status"></div>
+                <span class="ml-2">Gemini is generating content...</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoLinkInput = document.getElementById('videoLink');
+            const downloadButton = document.getElementById('downloadButton');
+            const pasteButton = document.getElementById('pasteButton');
+            const downloadResults = document.getElementById('downloadResults');
+            const downloadLinkOutput = document.getElementById('downloadLinkOutput');
+            const videoTitleDisplay = document.getElementById('videoTitleDisplay');
+            
+            const aiTools = document.getElementById('aiTools');
+            const captionButton = document.getElementById('captionButton');
+            const summaryButton = document.getElementById('summaryButton');
+            const ttsButton = document.getElementById('ttsButton');
+            const imageButton = document.getElementById('imageButton');
+            const ttsAudioPlayer = document.getElementById('ttsAudioPlayer');
+            const aiImageOutput = document.getElementById('aiImageOutput');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const aiOutputContainer = document.getElementById('aiOutputContainer');
+            const aiOutput = document.getElementById('aiOutput');
+            const aiOutputTitle = document.getElementById('aiOutputTitle');
+            const messageBox = document.getElementById('messageBox');
+
+            let videoMetadata = null; 
+
+            // --- UI/Helper Functions ---
+
+            const showMessage = (text, type = 'warning') => {
+                messageBox.textContent = text;
+                messageBox.className = `p-3 mb-4 text-sm rounded-lg ${
+                    type === 'error' 
+                    ? 'text-red-800 bg-red-100' 
+                    : 'text-yellow-800 bg-yellow-100'
+                }`;
+                messageBox.classList.remove('hidden');
+            };
+
+            const hideMessage = () => {
+                messageBox.classList.add('hidden');
+            };
+
+            const toggleLoading = (isLoading) => {
+                downloadButton.disabled = isLoading;
+                captionButton.disabled = isLoading;
+                summaryButton.disabled = isLoading;
+                ttsButton.disabled = isLoading;
+                imageButton.disabled = isLoading;
+                pasteButton.disabled = isLoading;
+                
+                if (isLoading) {
+                    loadingIndicator.classList.remove('hidden');
+                    aiOutputContainer.classList.add('hidden');
+                } else {
+                    loadingIndicator.classList.add('hidden');
+                }
+            };
+            
+            // --- AI API Call Functions ---
+
+            const callGeminiApi = async (payload, endpoint = 'generateContent') => {
+                const apiKey = ""; 
+                const apiUrlBase = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20`;
+                const apiUrl = `${apiUrlBase}:${endpoint}?key=${apiKey}`;
+                
+                let attempts = 0;
+                const maxAttempts = 5;
+
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            return result;
+                        } else if (response.status === 429 && attempts < maxAttempts) {
+                            const delay = Math.pow(2, attempts) * 1000 + (Math.random() * 1000); 
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        } else {
+                            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        if (attempts === maxAttempts) {
+                            throw new Error(`Maximum API retry attempts reached. Reason: ${error.message}`);
+                        }
+                        const delay = Math.pow(2, attempts) * 500;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            };
+
+            const callGeminiImageApi = async (prompt) => {
+                const apiKey = ""; 
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+                
+                const payload = { 
+                    instances: { prompt: prompt }, 
+                    parameters: { "sampleCount": 1 } 
+                };
+
+                let attempts = 0;
+                const maxAttempts = 5;
+
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                                return `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                            }
+                            throw new Error("Image generation response was empty.");
+                        } else if ([401, 403, 429].includes(response.status) && attempts < maxAttempts) {
+                            const delay = Math.pow(2, attempts) * 1000 + (Math.random() * 1000); 
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        } else {
+                            throw new Error(`Image API Error: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        if (attempts === maxAttempts) {
+                            throw new Error(`Maximum Image API retry attempts reached. Reason: ${error.message}`);
+                        }
+                        const delay = Math.pow(2, attempts) * 500;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            };
+            
+            // --- TTS Audio Helper Functions ---
+            
+            const base64ToArrayBuffer = (base64) => {
+                const binaryString = atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+                return bytes.buffer;
+            };
+
+            const pcmToWav = (pcm16, sampleRate = 24000) => {
+                const numChannels = 1;
+                const numSamples = pcm16.length;
+                const buffer = new ArrayBuffer(44 + numSamples * 2);
+                const view = new DataView(buffer);
+                
+                function writeString(view, offset, string) {
+                    for (let i = 0; i < string.length; i++) {
+                        view.setUint8(offset + i, string.charCodeAt(i));
+                    }
+                }
+
+                writeString(view, 0, 'RIFF');
+                view.setUint32(4, 36 + numSamples * 2, true);
+                writeString(view, 8, 'WAVE');
+                writeString(view, 12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, numChannels, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * numChannels * 2, true);
+                view.setUint16(32, numChannels * 2, true);
+                view.setUint16(34, 16, true);
+                writeString(view, 36, 'data');
+                view.setUint32(40, numSamples * 2, true);
+
+                let offset = 44;
+                for (let i = 0; i < numSamples; i++) {
+                    view.setInt16(offset, pcm16[i], true);
+                    offset += 2;
+                }
+                
+                return new Blob([buffer], { type: 'audio/wav' });
+            };
+
+            const callTTSApi = async (ttsPayload) => {
+                const apiKey = "";
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+                
+                let attempts = 0;
+                const maxAttempts = 5;
+
+                while (attempts < maxAttempts) {
+                    attempts++;
+                    try {
+                        const response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(ttsPayload)
+                        });
+
+                        if (response.ok) {
+                            const result = await response.json();
+                            const part = result?.candidates?.[0]?.content?.parts?.[0];
+                            const audioData = part?.inlineData?.data;
+                            const mimeType = part?.inlineData?.mimeType;
+
+                            if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                                const rateMatch = mimeType.match(/rate=(\d+)/);
+                                const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+                                
+                                const pcmData = base64ToArrayBuffer(audioData);
+                                const pcm16 = new Int16Array(pcmData);
+                                const wavBlob = pcmToWav(pcm16, sampleRate);
+                                return URL.createObjectURL(wavBlob);
+                            } else {
+                                throw new Error("Invalid or missing audio data from TTS API.");
+                            }
+
+                        } else if ([401, 403, 429].includes(response.status) && attempts < maxAttempts) {
+                            const delay = Math.pow(2, attempts) * 1000 + (Math.random() * 1000); 
+                            await new Promise(resolve => setTimeout(resolve, delay));
+                        } else {
+                            throw new Error(`TTS API Error: ${response.status} ${response.statusText}`);
+                        }
+                    } catch (error) {
+                        if (attempts === maxAttempts) {
+                            throw new Error(`Maximum TTS API retry attempts reached. Reason: ${error.message}`);
+                        }
+                        const delay = Math.pow(2, attempts) * 500;
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                    }
+                }
+            };
+
+            // --- Feature 1: Caption Generator ---
+            const generateCaption = async () => {
+                if (!videoMetadata) return;
+                aiOutputTitle.textContent = "AI Suggested Captions";
+                ttsAudioPlayer.classList.add('hidden'); 
+                ttsAudioPlayer.src = '';
+                aiImageOutput.classList.add('hidden'); 
+                aiImageOutput.src = '';
+                aiOutput.classList.remove('hidden'); 
+                aiOutput.innerHTML = '';
+                toggleLoading(true);
+                hideMessage();
+
+                const userPrompt = `Generate 5 creative, modern, and engaging social media captions for a video based on the following original caption and themes. Include popular hashtags. Original Caption: "${videoMetadata.originalCaption}" | Themes: ${videoMetadata.themes.join(', ')}.`;
+                const systemPrompt = "You are a professional social media manager. Provide five distinct caption options, each with appropriate emojis and hashtags. Do not include any conversational preamble, just the list of captions.";
+
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                };
+
+                try {
+                    const result = await callGeminiApi(payload);
+                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (text) {
+                        aiOutput.innerHTML = text.replace(/\n/g, '<br>');
+                        aiOutputContainer.classList.remove('hidden');
+                    } else {
+                        throw new Error("Received empty response from Gemini.");
+                    }
+                } catch (e) {
+                    console.error("Caption Generation Error:", e);
+                    showMessage(`Caption generation failed. ${e.message}`, 'error');
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+            
+            // --- Feature 2: Structured Summary Generator ---
+            const generateSummary = async () => {
+                if (!videoMetadata) return;
+                aiOutputTitle.textContent = "AI Key Takeaways and Summary";
+                ttsAudioPlayer.classList.add('hidden'); 
+                ttsAudioPlayer.src = '';
+                aiImageOutput.classList.add('hidden'); 
+                aiImageOutput.src = '';
+                aiOutput.classList.remove('hidden'); 
+                aiOutput.innerHTML = '';
+                toggleLoading(true);
+                hideMessage();
+
+                const userPrompt = `The video content relates to the following original caption: "${videoMetadata.originalCaption}". The main themes are: ${videoMetadata.themes.join(', ')}. Analyze the implied content and generate a brief summary and three key takeaways as an easy-to-read list.`;
+                const systemPrompt = "You are an expert analyst. Your task is to process the user request and return a structured JSON object containing a brief summary and an array of key takeaways.";
+                
+                const payload = {
+                    contents: [{ parts: [{ text: userPrompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                "summary": { "type": "STRING", "description": "A brief, one-sentence summary of the video's content." },
+                                "keyTakeaways": {
+                                    "type": "ARRAY",
+                                    "description": "An array of 3 most important lessons or points from the video.",
+                                    "items": { "type": "STRING" }
+                                }
+                            }
+                        }
+                    }
+                };
+
+                try {
+                    const result = await callGeminiApi(payload);
+                    const jsonText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    
+                    if (jsonText) {
+                        const parsedJson = JSON.parse(jsonText);
+                        let htmlOutput = `
+                            <p class="font-bold mb-2">Summary:</p>
+                            <p class="mb-4">${parsedJson.summary}</p>
+                            <p class="font-bold mb-2">Key Takeaways:</p>
+                            <ul class="list-disc list-inside space-y-1 ml-4">
+                                ${parsedJson.keyTakeaways.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        `;
+                        aiOutput.innerHTML = htmlOutput;
+                        aiOutputContainer.classList.remove('hidden');
+                    } else {
+                        throw new Error("Received empty or invalid JSON response from Gemini.");
+                    }
+                } catch (e) {
+                    console.error("Summary Generation Error:", e);
+                    showMessage(`Summary generation failed. ${e.message}`, 'error');
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+
+            // --- Feature 3: Voiceover Generation and Playback ---
+            const generateVoiceoverAndPlay = async () => {
+                if (!videoMetadata) return;
+
+                aiOutputTitle.textContent = "AI Generated Voiceover Script (Play Below)";
+                ttsAudioPlayer.classList.add('hidden');
+                ttsAudioPlayer.src = '';
+                aiImageOutput.classList.add('hidden');
+                aiImageOutput.src = '';
+                aiOutput.classList.remove('hidden');
+                aiOutput.innerHTML = '';
+                toggleLoading(true);
+                hideMessage();
+
+                try {
+                    // Step 1: Generate the script
+                    const textPrompt = `Based on the content themes: ${videoMetadata.themes.join(', ')}. Write a very short, energetic, and catchy voice-over script (max 20 words) that encourages a viewer to share or try the hack. Start with a clear call to action.`;
+                    const textSystemPrompt = "You are a witty copywriter. Provide only the script text. Do not include quotes or any other formatting.";
+                    const textPayload = {
+                        contents: [{ parts: [{ text: textPrompt }] }],
+                        systemInstruction: { parts: [{ text: textSystemPrompt }] },
+                    };
+                    const textResult = await callGeminiApi(textPayload);
+                    const generatedScript = textResult.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+                    if (!generatedScript) {
+                        throw new Error("Failed to generate voiceover script.");
+                    }
+                    
+                    aiOutput.innerHTML = generatedScript;
+                    aiOutputContainer.classList.remove('hidden');
+
+                    // Step 2: Convert the generated script to Audio
+                    const ttsPayload = {
+                        contents: [{ parts: [{ text: `Say with an excitable and youthful tone: ${generatedScript}` }] }],
+                        generationConfig: {
+                            responseModalities: ["AUDIO"],
+                            speechConfig: {
+                                multiSpeakerVoiceConfig: {
+                                    speakerVoiceConfigs: [
+                                        { speaker: "Narrator", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Fenrir" } } }
+                                    ]
+                                }
+                            }
+                        }
+                    };
+                    
+                    const audioUrl = await callTTSApi(ttsPayload);
+
+                    // Step 3: Play the audio
+                    ttsAudioPlayer.src = audioUrl;
+                    ttsAudioPlayer.classList.remove('hidden');
+                    ttsAudioPlayer.play().catch(e => console.log("Audio play blocked (browser policy):", e));
+
+
+                } catch (e) {
+                    console.error("Voiceover Generation Error:", e);
+                    showMessage(`Voiceover generation failed. ${e.message}`, 'error');
+                    ttsAudioPlayer.classList.add('hidden');
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+            
+            // --- Feature 4: AI Image/Thumbnail Generator ---
+            const generateImage = async () => {
+                if (!videoMetadata) return;
+
+                aiOutputTitle.textContent = "AI Generated Thumbnail";
+                ttsAudioPlayer.classList.add('hidden'); 
+                ttsAudioPlayer.src = '';
+                aiImageOutput.classList.add('hidden'); 
+                aiImageOutput.src = '';
+                aiOutput.classList.remove('hidden'); 
+                aiOutput.innerHTML = '';
+                toggleLoading(true);
+                hideMessage();
+                aiOutputContainer.classList.remove('hidden');
+
+                const promptText = `A high-quality, eye-catching, cinematic thumbnail image for a social media video. The video is about: ${videoMetadata.originalCaption}. Main themes include: ${videoMetadata.themes.join(', ')}. Focus on bright colors and clear action. Ratio 16:9, digital art, highly detailed.`;
+
+                try {
+                    const imageUrl = await callGeminiImageApi(promptText);
+                    
+                    aiImageOutput.src = imageUrl;
+                    aiImageOutput.classList.remove('hidden');
+                    aiOutput.innerHTML = `**Prompt used to generate image:**<br>${promptText}`;
+
+                } catch (e) {
+                    console.error("Image Generation Error:", e);
+                    showMessage(`Image generation failed. ${e.message}`, 'error');
+                    aiImageOutput.classList.add('hidden');
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+
+            // --- Main Download Logic (Mocked) ---
+            async function initiateDownload() {
+                const link = videoLinkInput.value.trim();
+                hideMessage();
+                downloadResults.classList.add('hidden');
+                aiTools.classList.add('hidden');
+                aiOutputContainer.classList.add('hidden');
+                aiOutput.innerHTML = '';
+                ttsAudioPlayer.classList.add('hidden');
+                ttsAudioPlayer.src = '';
+                aiImageOutput.classList.add('hidden');
+                aiImageOutput.src = '';
+                videoMetadata = null; 
+                toggleLoading(true);
+
+                if (!link || !link.startsWith('http')) {
+                    showMessage("Please enter a valid video URL (e.g., https://tiktok.com/...).");
+                    toggleLoading(false);
+                    return;
+                }
+
+                // --- MOCK API CALL SIMULATION ---
+                await new Promise(resolve => setTimeout(resolve, 2000)); 
+                toggleLoading(false);
+
+                // Simulate successful retrieval of the no-watermark link AND video metadata
+                const mockVideoTitle = "Epic Life Hack: Cleaning Your Air Fryer in 5 Minutes!";
+                const mockSuccessfulUrl = "https://placehold.co/600x400/8B5CF6/fff?text=DOWNLOAD+SUCCESSFUL";
+
+                videoMetadata = {
+                    originalCaption: mockVideoTitle + " #cleaninghacks #airfryer #easyclean",
+                    themes: ["cleaning", "home maintenance", "life hacks", "air fryer"]
+                };
+                
+                if (mockSuccessfulUrl) {
+                    downloadResults.classList.remove('hidden');
+                    aiTools.classList.remove('hidden');
+                    downloadLinkOutput.href = mockSuccessfulUrl;
+                    videoTitleDisplay.textContent = `Content detected: "${mockVideoTitle}"`;
+                } else {
+                    showMessage("Download failed. The video may be private or the service is down.", 'error');
+                }
+            }
+
+            // --- Event Listeners ---
+            downloadButton.addEventListener('click', initiateDownload);
+            captionButton.addEventListener('click', generateCaption);
+            summaryButton.addEventListener('click', generateSummary);
+            ttsButton.addEventListener('click', generateVoiceoverAndPlay);
+            imageButton.addEventListener('click', generateImage);
+            
+            // Paste Button functionality (added specific mobile paste trigger for better UX)
+            pasteButton.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (text) {
+                        videoLinkInput.value = text.trim();
+                        initiateDownload();
+                    }
+                } catch (err) {
+                    showMessage('Clipboard access denied or failed to paste. Please paste the link manually.');
+                }
+            });
+            
+            videoLinkInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    initiateDownload();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
